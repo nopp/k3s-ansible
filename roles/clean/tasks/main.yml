@@ -1,0 +1,9 @@
+---
+- name: "Cleaning k3s master"
+  shell: /usr/local/bin/k3s-uninstall.sh
+  register: k3smaster_clean
+  when: "'master' in group_names"
+- name: "Cleaning k3s worker"
+  shell: /usr/local/bin/k3s-agent-uninstall.sh
+  register: k3sworker_clean
+  when: "'worker' in group_names"

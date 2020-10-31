@@ -1,0 +1,22 @@
+---
+- name: Download k3s.sh
+  get_url:
+    url: https://get.k3s.io
+    dest: /tmp/k3s.sh
+    mode: '0755'
+- name: "Initialize main"
+  shell: INSTALL_K3S_EXEC="server --no-deploy traefik" /tmp/k3s.sh
+  register: k3smaster_init
+  when: "'master' in group_names"
+- name: "Read node-token"  
+  shell: cat /var/lib/rancher/k3s/server/node-token
+  register: node_token
+  when: "'master' in group_names"
+- name: Store node-token
+  set_fact:
+    token: "{{ node_token.stdout }}"
+  when: "'master' in group_names"
+- name: "Initialize worker"
+  shell: K3S_URL=https://"{{ hostvars[groups['master'][0]]['ansible_default_ipv4']['address']}}":6443 K3S_TOKEN="{{ hostvars[groups['master'][0]]['token']}}" /tmp/k3s.sh
+  register: k3sworker_init
+  when: "'worker' in group_names"
